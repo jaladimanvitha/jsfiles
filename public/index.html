@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FCP Pods Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">FCP</span>
+        <span>Pods Dashboard</span>
+      </div>
+      <div class="health">
+        <span id="health-gcloud" class="pill pill-muted" title="gcloud CLI status">gcloud …</span>
+        <span id="health-kubectl" class="pill pill-muted" title="kubectl CLI status">kubectl …</span>
+        <span id="health-auth" class="pill pill-muted" title="gcloud auth status">auth …</span>
+        <button id="btn-login" class="btn btn-primary" type="button">Login</button>
+      </div>
+    </header>
+
+    <!-- Install prompt (only visible when gcloud or kubectl missing) -->
+    <section id="install-banner" class="banner banner-warn hidden">
+      <div>
+        <strong>Missing CLI:</strong>
+        <span id="install-msg"></span>
+        The dashboard can run your local installer placeholder
+        (<code>Install.cmd</code> on Windows, <code>install.sh</code> on Unix).
+      </div>
+      <button id="btn-install" class="btn btn-warn" type="button">Run installer</button>
+    </section>
+
+    <main>
+      <!-- Connection config -->
+      <section class="card">
+        <h2>Cluster connection</h2>
+        <div class="grid grid-3">
+          <label>
+            <span>Project</span>
+            <input id="cfg-project" type="text" placeholder="msv-int-caas01-svp01-47052" autocomplete="off" />
+          </label>
+          <label>
+            <span>Cluster</span>
+            <input id="cfg-cluster" type="text" placeholder="ew2-msv-int-caas01-svp01-gke01" autocomplete="off" />
+          </label>
+          <label>
+            <span>Region</span>
+            <input id="cfg-region" type="text" placeholder="europe-west2" autocomplete="off" />
+          </label>
+        </div>
+        <div class="row gap">
+          <button id="btn-connect" class="btn" type="button">Connect</button>
+          <span class="hint">Runs <code>gcloud config set project</code> + <code>get-credentials</code>.</span>
+        </div>
+
+        <div class="row gap context-row">
+          <label class="inline">
+            <span>kubectl context</span>
+            <select id="ctx-select"></select>
+          </label>
+          <button id="btn-ctx-refresh" class="btn btn-ghost" type="button" title="Reload contexts">↻</button>
+        </div>
+      </section>
+
+      <!-- Pods -->
+      <section class="card">
+        <div class="row between wrap">
+          <h2>Pods</h2>
+          <div class="row gap wrap">
+            <label class="inline">
+              <span>Namespace</span>
+              <input id="ns-input" type="text" placeholder="ns-e2441b-int" list="ns-history" autocomplete="off" />
+              <datalist id="ns-history"></datalist>
+            </label>
+            <button id="btn-load" class="btn btn-primary" type="button">Load pods</button>
+            <label class="inline checkbox">
+              <input id="auto-refresh" type="checkbox" />
+              <span>Auto-refresh</span>
+            </label>
+            <label class="inline">
+              <span>every</span>
+              <input id="auto-interval" type="number" value="10" min="2" max="600" />
+              <span>s</span>
+            </label>
+            <input id="filter" class="filter" type="search" placeholder="Filter pods…" />
+          </div>
+        </div>
+
+        <div id="pods-status" class="hint"></div>
+
+        <div class="table-wrap">
+          <table class="pods">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Ready</th>
+                <th>Status</th>
+                <th>Restarts</th>
+                <th>Age</th>
+                <th>Node</th>
+                <th>IP</th>
+                <th class="actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pods-body">
+              <tr class="empty"><td colspan="8">No pods loaded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Logs modal -->
+    <div id="logs-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-box wide">
+        <header>
+          <h3 id="logs-title">Logs</h3>
+          <button class="btn btn-ghost" data-close type="button">✕</button>
+        </header>
+        <div class="row gap modal-tools">
+          <label class="inline">
+            <span>Container</span>
+            <select id="logs-container"></select>
+          </label>
+          <label class="inline">
+            <span>Tail</span>
+            <input id="logs-tail" type="number" value="200" min="1" max="10000" />
+          </label>
+          <label class="inline checkbox">
+            <input id="logs-follow" type="checkbox" />
+            <span>Live follow (poll)</span>
+          </label>
+          <button id="btn-logs-refresh" class="btn" type="button">Refresh</button>
+          <button id="btn-logs-copy" class="btn btn-ghost" type="button">Copy</button>
+        </div>
+        <pre id="logs-output" class="output"></pre>
+      </div>
+    </div>
+
+    <!-- Describe modal -->
+    <div id="describe-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-box wide">
+        <header>
+          <h3 id="describe-title">Describe</h3>
+          <button class="btn btn-ghost" data-close type="button">✕</button>
+        </header>
+        <div class="row gap modal-tools">
+          <button id="btn-describe-refresh" class="btn" type="button">Refresh</button>
+          <button id="btn-describe-copy" class="btn btn-ghost" type="button">Copy</button>
+        </div>
+        <pre id="describe-output" class="output"></pre>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
